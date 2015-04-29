@@ -1,0 +1,913 @@
+package Gobang;
+
+/**
+ * @author LeeWay
+ * @category Game
+ * @version 1.8
+ * 
+ * 再度增加4张背景图 和初步人机功能
+ */
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Label;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+//取消警告
+@SuppressWarnings("serial")
+// 继承 JPanel 实现 ActionListener MouseListener 接口
+public class Gobang_9 extends JPanel implements ActionListener, MouseListener {
+
+	// 定义变量 黑子、白子、NOT_USED
+	private enum Pieces {
+		// 白子，黑子，未使用的棋子（NOT_USED）
+		WHITE, BLACK, NOT_USED;
+	}
+
+	final Gobang_9 jf = this;
+	// 定义面板 棋盘面板 组件
+	private static JPanel qipan, zujian;
+	// 定义变量 棋子数量
+	private static int qizi_black, qizi_white;
+	// 定义集合 存放 悔棋时x、y坐标
+	private ArrayList<Integer> huiqi_x = new ArrayList<Integer>();
+	private ArrayList<Integer> huiqi_y = new ArrayList<Integer>();
+	// 定义变量 行列格子数 每个格子的像素 鼠标点击坐标 x,y
+	private static int ROWS, COLUMNS, SIDE, mouseClickedX, mouseClickedY;
+	// 定义变量 是否为黑 为设置黑子白子交替下棋 做准备
+	private static boolean isBlack;
+	// 定义画笔 g2d 为画棋盘黑子白子做准备
+	private Graphics2D g2d;
+	// 定义二维数组 pieces 盛放棋盘
+	private static Pieces[][] pieces;
+	// 定义框架 frame
+	private static JFrame frame;
+	// 定义菜单栏 menuBar
+	private static JMenuBar menuBar;
+	// 定义棋盘背景 table
+	private static BufferedImage table;
+	// 定义 白棋标签 黑棋标签 轮次标签 时间标签
+	private static Label number_black, number_white, baiqiLabel, heiqiLabel,
+			lunciLabel, timeLabel;
+	// 定义 轮次 时间 开始 保存棋局 退出 按钮
+	private static JButton lunci, time, kaishi, baocun, tuichu;
+	// 定义四个事件 "重新游戏" "退出游戏" "悔棋" "认输"
+	private static JMenuItem resetAction, exitAction, takingBackMove,
+			admitLose;
+	// 定义四个背景 绿草如荫 紫色缤纷 橙色炫彩 映日荷花
+	private static JMenuItem image1, image2, image3, image4, image5, image6,
+			image7, image8;
+	// 定义主菜单项menu game back help
+	private static JMenu menu, game, back, moshi, help;
+	// 定义子菜单项 介绍 规则 作者
+	private static JMenuItem help_jieshao, help_guize, help_author,
+			moshi_renren, moshi_renji;
+	// 定义字体
+	private static Font f;
+
+	public Gobang_9() throws IOException {
+		// 初始化棋子数量变量
+		qizi_black = 40;
+		qizi_white = 40;
+		// 初始化鼠标点击坐标变量
+		mouseClickedX = 0;
+		mouseClickedY = 0;
+		// 初始化行列格子数
+		ROWS = 20;
+		COLUMNS = 20;
+		// 初始化行列格子像素
+		SIDE = 32;
+		// 初始化isBlack为true
+		isBlack = true;
+		// 初始化数组Pieces
+		pieces = new Pieces[COLUMNS - 1][ROWS - 1];
+		// 初始化框架frame
+		frame = new JFrame();
+		// 初始化菜单栏menuBar
+		menuBar = new JMenuBar();
+		// 初始化背景图片
+		table = ImageIO.read(new File("./8.GIF"));
+
+		// 初始化 白棋标签 黑棋标签 轮次标签 时间标签
+		baiqiLabel = new Label();
+		heiqiLabel = new Label();
+		lunciLabel = new Label();
+		timeLabel = new Label();
+
+		// 初始化 信息区里黑方白方剩余棋子数量 轮次 时间 开始 保存棋局 退出 按钮
+		number_black = new Label("	" + qizi_black + "");
+		number_white = new Label("	" + qizi_white + "");
+		kaishi = new JButton(new ImageIcon("./kaishi.png"));
+		baocun = new JButton(new ImageIcon("./baocun.png"));
+		tuichu = new JButton(new ImageIcon("./tuichu.png"));
+		lunci = new JButton("黑方执子");
+		time = new JButton("12:00");
+
+		// 初始化主菜单menu game table help
+		menu = new JMenu("菜单");
+		game = new JMenu("游戏");
+		back = new JMenu("背景");
+		moshi = new JMenu("模式");
+		help = new JMenu("说明");
+		// 初始化11个子菜单项 "重新游戏" "退出游戏" "悔棋" "认输" 绿草如荫 紫色缤纷 橙色炫彩 映日荷花 介绍 规则 作者
+		resetAction = new JMenuItem("重新游戏");
+		exitAction = new JMenuItem("退出游戏");
+		takingBackMove = new JMenuItem("悔棋");
+		admitLose = new JMenuItem("认输");
+		moshi_renren = new JMenuItem("人人对战");
+		moshi_renji = new JMenuItem("人机对战");
+		admitLose = new JMenuItem("认输");
+		image1 = new JMenuItem("绿草如荫");
+		image2 = new JMenuItem("紫色缤纷");
+		image3 = new JMenuItem("橙色炫彩");
+		image4 = new JMenuItem("映日荷花");
+		image5 = new JMenuItem("蓝色吉他");
+		image6 = new JMenuItem("风车校园");
+		image7 = new JMenuItem("炫彩蓝色");
+		image8 = new JMenuItem("浪漫童话");
+		help_jieshao = new JMenuItem("介绍");
+		help_guize = new JMenuItem("规则");
+		help_author = new JMenuItem("作者");
+
+		// 将子菜单menu加入菜单栏menuBar中
+		menuBar.add(menu);
+		// 将子菜单game加入菜单栏menuBar中
+		menuBar.add(game);
+		// 将子菜单table加入菜单栏menuBar中
+		menuBar.add(back);
+		// 将子菜单moshi加入菜单栏menuBar中
+		menuBar.add(moshi);
+		// 将子菜单help加入菜单栏menuBar中
+		menuBar.add(help);
+
+		// 将"重新游戏"加入子菜单menu中
+		menu.add(resetAction);
+		// 将"退出游戏"加入子菜单menu中
+		menu.add(exitAction);
+		// 将"悔棋"加入子菜单menu中
+		game.add(takingBackMove);
+		// 将"认输"加入子菜单menu中
+		game.add(admitLose);
+		// 将4个table加入子菜单menu中
+		back.add(image1);
+		back.add(image2);
+		back.add(image3);
+		back.add(image4);
+		back.add(image5);
+		back.add(image6);
+		back.add(image7);
+		back.add(image8);
+		// 将 人人对战和人机对战 加入 moshi中
+		moshi.add(moshi_renren);
+		moshi.add(moshi_renji);
+		// 将 介绍和规则加入 help中
+		help.add(help_jieshao);
+		help.add(help_guize);
+		help.add(help_author);
+
+		// 将四个事件加入动作事件监听
+		// 将所有棋子清除事件
+		resetAction.addActionListener(this);
+		// 退出游戏事件
+		exitAction.addActionListener(this);
+		// 悔棋事件
+		takingBackMove.addActionListener(this);
+		// 认输事件
+		admitLose.addActionListener(this);
+		// 4个table事件
+		image1.addActionListener(this);
+		image2.addActionListener(this);
+		image3.addActionListener(this);
+		image4.addActionListener(this);
+		image5.addActionListener(this);
+		image6.addActionListener(this);
+		image7.addActionListener(this);
+		image8.addActionListener(this);
+		// help里事件
+		help_jieshao.addActionListener(this);
+		help_guize.addActionListener(this);
+		help_author.addActionListener(this);
+
+		// 根据设定的每一行的格子数 每一列的格子数 每个格子的像素 设置最好的窗口大小
+		setPreferredSize(new Dimension(COLUMNS * SIDE, ROWS * SIDE));
+		// 加入鼠标事件监听 以便监听落子
+		addMouseListener(this);
+		// 调用刷新界面方法 将所有棋子隐藏
+		resetBoard();
+		qizi_black = 40;
+		qizi_white = 40;
+		number_black.setText(qizi_black + "");
+		number_white.setText(qizi_white + "");
+
+	}
+
+	// 画棋盘
+	private void drawBoard(Graphics2D g) {
+		// 将table图片放入棋盘背景
+		g.drawImage(table, 0, 0, null);
+		// 画永不变的线
+		// 上边界线 起点坐标（0,0） 终点坐标（COLUMNS * SIDE, 0）
+		g.drawLine(0, 0, COLUMNS * SIDE, 0);
+		// 下边界线 起点坐标（0, ROWS * SIDE） 终点坐标（COLUMNS * SIDE, ROWS * SIDE）
+		g.drawLine(0, ROWS * SIDE, COLUMNS * SIDE, ROWS * SIDE);
+		// 左边界线 起点坐标（0, 0） 终点坐标（0, ROWS * SIDE）
+		g.drawLine(0, 0, 0, ROWS * SIDE);
+		// 右边界线 起点坐标（COLUMNS * SIDE, 0 ） 终点坐标（ COLUMNS * SIDE, ROWS * SIDE）
+		g.drawLine(COLUMNS * SIDE, 0, COLUMNS * SIDE, ROWS * SIDE);
+		// 第一行到最后一行不受棋子挡住的线
+		for (int i = 1; i < ROWS; i++) {
+			// 左边界不受棋子影响的线
+			g.drawLine(0, SIDE * i, SIDE / 2, SIDE * i);
+			// 右边界不受棋子影响的线
+			g.drawLine(COLUMNS * SIDE - (SIDE / 2), SIDE * i, COLUMNS * SIDE,
+					SIDE * i);
+		}
+		// 第一列到最后一列不受棋子挡住的线
+		for (int j = 1; j < COLUMNS; j++) {
+			// 上边界不受棋子影响的线
+			g.drawLine(SIDE * j, 0, SIDE * j, SIDE / 2);
+			// 下边界不受棋子影响的线
+			g.drawLine(SIDE * j, SIDE * ROWS - (SIDE / 2), j * SIDE, ROWS
+					* SIDE);
+		}
+		// 画可能会消失的线
+		// 画出放棋子时会随着放棋子而改变的部分 ， 即画NOT_USED
+		for (int i = 0; i < COLUMNS - 1; i++) {
+			for (int j = 0; j < ROWS - 1; j++) {
+				if (pieces[i][j] == Pieces.NOT_USED) {
+					g.drawLine((SIDE / 2) + (i * SIDE), (j + 1) * SIDE,
+							((SIDE / 2) + ((i + 1) * SIDE)), (j + 1) * SIDE);
+					g.drawLine((i + 1) * SIDE, (SIDE / 2) + (j * SIDE), (i + 1)
+							* SIDE, (SIDE / 2) + ((j + 1) * SIDE));
+				}
+			}
+		}
+	}
+
+	// 绘画组件
+	@Override
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		// 把 画笔 g转成Graphics2D类型赋给 g2d
+		g2d = (Graphics2D) g;
+		// 将 g2d画笔传给 画棋盘和画画棋子的方法
+		drawBoard(g2d);
+		drawPieces(g2d);
+	}
+
+	// 实现 重新游戏 退出游戏 悔棋 认输 事件功能 （ActionListener）
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// 重新开始的功能实现
+		// 如果点击 菜单栏中 "重新游戏"
+		if (e.getActionCommand().equals("重新游戏")) {
+			// 执行刷新界面方法
+			resetBoard();
+			// 初始 黑子和白子数量 并且将显示按钮改成初始数量
+			qizi_black = 40;
+			qizi_white = 40;
+			number_black.setText(qizi_black + "");
+			number_white.setText(qizi_white + "");
+			// 重绘
+			this.repaint();
+			// 如果点击 游戏栏中 "认输"
+		} else if (e.getActionCommand().equals("认输")) {
+			// 判断当前是否下黑色棋子 若返回true则输出框提示"黑方胜利！" 若返回false则输出框提示"白方胜利！"
+			if (huiqi_x.size() > 0) {
+				if (isBlack) {
+					JOptionPane.showMessageDialog(null, "白方胜利！");
+					// 结束对话框重新绘制棋盘
+					resetBoard();
+					// 重绘
+					this.repaint();
+				} else {
+					JOptionPane.showMessageDialog(null, "黑方胜利！");
+					// 结束对话框重新绘制棋盘
+					resetBoard();
+					// 重绘
+					this.repaint();
+				}
+			} else {
+				// 当棋盘无棋子时 弹出无法认输对话框
+				JOptionPane.showMessageDialog(null, "不能认输！");
+			}
+
+			// 重绘
+			this.repaint();
+			// 如果点击 游戏栏中 "悔棋"
+		} else if (e.getActionCommand().equals("悔棋")) {
+			// 使用重构的resetBoard方法 获取上一次所下棋子的 centreX, centreY 并将黑色或白色棋子换成NOT_USED
+			System.out.println("还能悔棋的次数：" + huiqi_x.size());
+			int i = huiqi_x.size() - 1;
+			// 当悔棋集合里存在
+			if (huiqi_x.size() > 0) {
+				resetBoard(new Integer(huiqi_x.get(i).toString()), new Integer(
+						huiqi_y.get(i).toString()));
+				// 悔棋同时棋子显示信息 数目加一
+				if (!isBlack) {
+					qizi_white++;
+					number_white.setText(qizi_white + "");
+					isBlack = !isBlack;
+					// 重绘
+					this.repaint();
+				} else {
+					qizi_black++;
+					number_black.setText(qizi_black + "");
+					isBlack = !isBlack;
+				}
+				// 重绘
+				this.repaint();
+				// 每悔棋一步将栈顶 元素（之前存入的坐标） 移去 ，以便再悔棋
+				huiqi_x.remove(i);
+				huiqi_y.remove(i);
+				this.repaint();
+			} else {
+				// 当悔棋最后一步 提示不能悔棋
+				JOptionPane.showMessageDialog(null, "不能悔棋！");
+			}
+
+		} else if (e.getActionCommand().equals("绿草如荫")) {
+			try {
+				table = ImageIO.read(new File("./1.GIF"));
+				this.repaint();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+		} else if (e.getActionCommand().equals("紫色缤纷")) {
+			try {
+				table = ImageIO.read(new File("./2.GIF"));
+				this.repaint();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} else if (e.getActionCommand().equals("橙色炫彩")) {
+			try {
+				table = ImageIO.read(new File("./3.jpg"));
+				this.repaint();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+		} else if (e.getActionCommand().equals("映日荷花")) {
+			try {
+				table = ImageIO.read(new File("./4.GIF"));
+				this.repaint();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+		} else if (e.getActionCommand().equals("蓝色吉他")) {
+			try {
+				table = ImageIO.read(new File("./5.GIF"));
+				this.repaint();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+		} else if (e.getActionCommand().equals("风车校园")) {
+			try {
+				table = ImageIO.read(new File("./6.GIF"));
+				this.repaint();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+		} else if (e.getActionCommand().equals("炫彩蓝色")) {
+			try {
+				table = ImageIO.read(new File("./7.JPG"));
+				this.repaint();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+		} else if (e.getActionCommand().equals("浪漫童话")) {
+			try {
+				table = ImageIO.read(new File("./8.GIF"));
+				this.repaint();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+		} else if (e.getActionCommand().equals("介绍")) {
+			JOptionPane.showMessageDialog(null, "五子棋是一种两人对弈棋类益智游戏，由中国古代汉族人发明，"
+					+ "\n" + "棋具与围棋通用。" + "容易上手，老少皆宜，而且趣味横生，引人入胜。" + "\n"
+					+ "不仅能增强思维能力，提高智力，而且富含哲理，有助于修身养性。");
+		} else if (e.getActionCommand().equals("规则")) {
+			JOptionPane.showMessageDialog(null, "由于黑子先行本身有优势所以必须40步之内将白棋下赢");
+		} else if (e.getActionCommand().equals("作者")) {
+			JOptionPane.showMessageDialog(null, "齐鲁工业大学\n信息学院\n计科13—2\n李维");
+		} else
+			// 如果点击 菜单栏中 "退出游戏"
+			// 使用的所有内存都将返回到操作系统 也就是退出游戏
+			frame.dispose();
+	}
+
+	// 监听鼠标点击事件 未使用
+	@Override
+	public void mouseClicked(MouseEvent e) {
+
+	}
+
+	// 监听鼠标进入窗口事件 未使用
+	@Override
+	public void mouseEntered(MouseEvent e) {
+
+	}
+
+	// 监听鼠标离开窗口事件 未使用
+	@Override
+	public void mouseExited(MouseEvent e) {
+
+	}
+
+	// 监听鼠标按下事件 未使用
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// 获取当前鼠标所在的坐标 并使用updateBoard方法找到离其最近的点 并且落子
+		if (qizi_black != 0 && qizi_white != 0) {
+			updateBoard(e.getX(), e.getY());
+		} else if (qizi_white == 0) {
+			JOptionPane.showMessageDialog(null, "您已经没有黑色棋子了!白方胜利游戏结束!");
+		} else {
+			JOptionPane.showMessageDialog(null, "您已经没有白色棋子了!");
+		}
+
+		// // 将当前 centreX, centreY 分别保存到 x,y 以便实现悔棋功能使用
+		mouseClickedX = e.getX();
+		mouseClickedY = e.getY();
+		// 将当前 横坐标、纵坐标 打印到控制台
+		System.out.println("横坐标：" + mouseClickedX + "\n纵坐标：" + mouseClickedY);
+		// 定义中心行列坐标 centreX ,centreY
+		int centreX, centreY;
+		// 找到离鼠标所在坐标最近的点
+		// 当前 所获得坐标 x 对 SIDE 取余数 若 小于 SIDE / 2 则放在 x / SIDE - 1位置 即离该点最近的 x坐标
+		if (mouseClickedX % SIDE <= SIDE / 2) {
+			centreX = mouseClickedX / SIDE - 1;
+		} else {
+			// 若 大于 SIDE / 2 则放在 x / SIDE 位置 即离该点最近的 x坐标
+			centreX = mouseClickedX / SIDE;
+		}
+		// 当前 所获得坐标 y 对 SIDE 取余数 若 小于 SIDE / 2 则放在 y / SIDE - 1位置 即离该点最近的 y坐标
+		if (mouseClickedY % SIDE <= SIDE / 2) {
+			centreY = mouseClickedY / SIDE - 1;
+		} else {
+			// 若 大于 SIDE / 2 则放在 y / SIDE 位置 即离该点最近的 y坐标
+			centreY = mouseClickedY / SIDE;
+		}
+		// 将当前 落子中心横坐标、纵坐标 打印到控制台
+		System.out.println("落子中心横坐标：" + centreX + "\n落子中心纵坐标：" + centreY);
+		// 重绘
+		this.repaint();
+		// 调用ifWin方法 如果符合胜利的方法则实现其操作
+		ifWin();
+		if (isBlack == true && qizi_black != 0) {
+			qizi_black--;
+			lunci.setText("黑方执子");
+			number_black.setText(qizi_black + "");
+		} else if (isBlack != true && qizi_white != 0) {
+			qizi_white--;
+			lunci.setText("白方执子");
+			number_white.setText(qizi_white + "");
+		} else {
+
+		}
+		// 在控制台分别显示黑子 和 白子的数量
+		System.out.println("剩余白子数量:" + qizi_black);
+		System.out.println("剩余黑子数量:" + qizi_white);
+
+	}
+
+	// 监听鼠标松开事件
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// 每一次松开鼠标 将所下棋子坐标放入数组里 以便多步悔棋
+		huiqi_x.add(mouseClickedX);
+		huiqi_y.add(mouseClickedY);
+
+	}
+
+	// 画棋子
+	private void drawPieces(Graphics g) {
+
+		for (int i = 0; i < COLUMNS - 1; i++) {
+			for (int j = 0; j < ROWS - 1; j++) {
+				// 棋盘上棋子分为 NOT_USED和USED 而USED里包括黑色棋子和白色棋子
+				if (pieces[i][j] != Pieces.NOT_USED) {
+					int x = (i + 1) * SIDE;
+					int y = (j + 1) * SIDE;
+					x = i * SIDE;
+					y = j * SIDE;
+					// 画黑色棋子
+					// 将画笔设置成黑色
+					g.setColor(Color.BLACK);
+					// 如果需要在 第i行第j列的位置放黑色棋子 则将USED换成黑色棋子
+					if (pieces[i][j] == Pieces.BLACK) {
+						// 默认画的圆形最左边是起始坐标 需要加上 (SIDE / 2) 正好对应圆心是所放棋子坐标
+						g.fillOval(x + (SIDE / 2), y + (SIDE / 2), SIDE, SIDE);
+					}
+					// 画白色棋子
+					if (pieces[i][j] == Pieces.WHITE) {
+						g.drawOval(x + (SIDE / 2), y + (SIDE / 2), SIDE, SIDE);
+					}
+
+				}
+			}
+		}
+	}
+
+	// 交替落黑白棋子
+	private void updateBoard(int x, int y) {
+		// 定义中心行列坐标 centreX ,centreY
+		int centreX, centreY;
+		// 找到离鼠标所在坐标最近的点
+		// 当前 所获得坐标 x 对 SIDE 取余数 若 小于 SIDE / 2 则放在 x / SIDE - 1位置 即离该点最近的 x坐标
+		if (x % SIDE <= SIDE / 2) {
+			centreX = x / SIDE - 1;
+		} else {
+			// 若 大于 SIDE / 2 则放在 x / SIDE 位置 即离该点最近的 x坐标
+			centreX = x / SIDE;
+		}
+		// 当前 所获得坐标 y 对 SIDE 取余数 若 小于 SIDE / 2 则放在 y / SIDE - 1位置 即离该点最近的 y坐标
+		if (y % SIDE <= SIDE / 2) {
+			centreY = y / SIDE - 1;
+		} else {
+			// 若 大于 SIDE / 2 则放在 y / SIDE 位置 即离该点最近的 y坐标
+			centreY = y / SIDE;
+		}
+
+		// 边界不能放棋
+		// 左上角第一个交点是 centreX centreY (0,0)坐标
+		if (centreX < 0 || centreY < 0 || centreX > (COLUMNS - 2)
+				|| centreY > (ROWS - 2)) {
+			// 弹出对话框 "边界不能放棋子！"
+			JOptionPane.showMessageDialog(null, "边界不能放棋子！");
+			// 避免棋子计数错误
+			if (isBlack) {
+				qizi_black++;
+			} else {
+				qizi_white++;
+			}
+		} else {
+			// 已经下过棋的地方不能下棋
+			if (pieces[centreX][centreY] != Pieces.NOT_USED) {
+				// 弹出对话框 "这个位置已经有棋子了！"
+				JOptionPane.showMessageDialog(null, "这个位置已经有棋子了！");
+				// 避免棋子计数错误
+				if (isBlack) {
+					qizi_black++;
+				} else {
+					qizi_white++;
+				}
+			} else {
+				// 实现交替下棋功能
+				pieces[centreX][centreY] = (isBlack) ? Pieces.BLACK
+						: Pieces.WHITE;
+				// 每一次下棋后 isBlack去非一次 黑白交替
+				isBlack = !isBlack;
+
+				// 重绘
+				this.repaint();
+			}
+		}
+	}
+
+	// 将棋盘上黑色和白色棋子清除 实现五子棋的重新开始功能
+	private void resetBoard() {
+		for (int i = 0; i < COLUMNS - 1; i++) {
+			for (int j = 0; j < ROWS - 1; j++) {
+				// 将 centreX =i centreY =j 位置设置成 NOT_USED
+				pieces[i][j] = Pieces.NOT_USED;
+
+			}
+			// 初始 黑子和白子数量
+			if (!isBlack) {
+				qizi_black = 40;
+				qizi_white = 41;
+				number_black.setText(qizi_black + "");
+				number_white.setText(qizi_white + "");
+				// 重绘
+				this.repaint();
+			} else {
+				qizi_black = 41;
+				qizi_white = 40;
+				number_black.setText(qizi_black + "");
+				number_white.setText(qizi_white + "");
+				// 重绘
+				this.repaint();
+			}
+
+		}
+	}
+
+	// 重构resetBoard()将某一个位置棋子消除 ，在实现悔棋功能中使用
+	private void resetBoard(int x, int y) {
+		// 定义中心坐标 centreX ,centreY
+		int centreX, centreY;
+		// 找到离鼠标所在坐标最近的点
+		// 当前 所获得坐标 x 对 SIDE 取余数 若 小于 SIDE / 2 则放在 x / SIDE - 1位置 即离该点最近的 x坐标
+		if (x % SIDE <= SIDE / 2) {
+			centreX = x / SIDE - 1;
+		} else {
+			// 若 大于 SIDE / 2 则放在 x / SIDE 位置 即离该点最近的 x坐标
+			centreX = x / SIDE;
+		}
+		// 当前 所获得坐标 y 对 SIDE 取余数 若 小于 SIDE / 2 则放在 y / SIDE - 1位置 即离该点最近的 y坐标
+		if (y % SIDE <= SIDE / 2) {
+			centreY = y / SIDE - 1;
+		} else {
+			// 若 大于 SIDE / 2 则放在 y / SIDE 位置 即离该点最近的 y坐标
+			centreY = y / SIDE;
+		}
+		// 将所传入的 中心坐标的位置上的棋子 换成NOT_USED
+		pieces[centreX][centreY] = Pieces.NOT_USED;
+
+	}
+
+	// 判断胜利
+	private void ifWin() {
+		// 判断输赢
+		// 白色棋子一行5连
+		for (int i = 0; i < COLUMNS - 1; i++) {
+
+			for (int j = 0; j < ROWS - 1; j++) {
+				// 保证不能数组越界
+				if (i < COLUMNS - 5
+						// 判断标准 一行连五个白色棋子
+						&& pieces[i][j] == Pieces.WHITE
+						&& pieces[i + 1][j] == Pieces.WHITE
+						&& pieces[i + 2][j] == Pieces.WHITE
+						&& pieces[i + 3][j] == Pieces.WHITE
+						&& pieces[i + 4][j] == Pieces.WHITE) {
+					// 弹出窗口 "白方胜利！"
+					JOptionPane.showMessageDialog(null, "白方胜利！");
+					// 当再次点击棋盘时实现刷新棋盘 即重新开始功能
+					resetBoard();
+				}
+			}
+		}
+		// 白色棋子一列5连
+		for (int i = 0; i < COLUMNS - 1; i++) {
+
+			for (int j = 0; j < ROWS - 1; j++) {
+				// 保证不能数组越界
+				if (j < ROWS - 5
+						// 判断标准 一列连五个白色棋子
+						&& pieces[i][j] == Pieces.WHITE
+						&& pieces[i][j + 1] == Pieces.WHITE
+						&& pieces[i][j + 2] == Pieces.WHITE
+						&& pieces[i][j + 3] == Pieces.WHITE
+						&& pieces[i][j + 4] == Pieces.WHITE) {
+					// 弹出窗口 "白方胜利！"
+					JOptionPane.showMessageDialog(null, "白方胜利！");
+					// 当再次点击棋盘时实现刷新棋盘 即重新开始功能
+					resetBoard();
+				}
+			}
+		}
+		// 白色棋子右斜着5连
+		for (int i = 0; i < COLUMNS - 1; i++) {
+
+			for (int j = 0; j < ROWS - 1; j++) {
+				// 保证不能数组越界
+				if (i < COLUMNS - 5
+						&& j < ROWS - 5
+						// 判断标准 右斜着连五个白色棋子
+						&& pieces[i][j] == Pieces.WHITE
+						&& pieces[i + 1][j + 1] == Pieces.WHITE
+						&& pieces[i + 2][j + 2] == Pieces.WHITE
+						&& pieces[i + 3][j + 3] == Pieces.WHITE
+						&& pieces[i + 4][j + 4] == Pieces.WHITE) {
+					// 弹出窗口 "白方胜利！"
+					JOptionPane.showMessageDialog(null, "白方胜利！");
+					// 当再次点击棋盘时实现刷新棋盘 即重新开始功能
+					resetBoard();
+				}
+			}
+		}
+
+		// 白色棋子左斜着5连
+		for (int i = 0; i < COLUMNS - 1; i++) {
+
+			for (int j = 0; j < ROWS - 1; j++) {
+				// 保证不能数组越界
+				if (j < ROWS - 5
+						&& i > 3
+						// 判断标准 左斜着连五个白色棋子
+						&& pieces[i][j] == Pieces.WHITE
+						&& pieces[i - 1][j + 1] == Pieces.WHITE
+						&& pieces[i - 2][j + 2] == Pieces.WHITE
+						&& pieces[i - 3][j + 3] == Pieces.WHITE
+						&& pieces[i - 4][j + 4] == Pieces.WHITE) {
+					// 弹出窗口 "白方胜利！"
+					JOptionPane.showMessageDialog(null, "白方胜利！");
+					// 当再次点击棋盘时实现刷新棋盘 即重新开始功能
+					resetBoard();
+				}
+			}
+		}
+		// 黑色棋子一行5连
+		for (int i = 0; i < COLUMNS - 1; i++) {
+
+			for (int j = 0; j < ROWS - 1; j++) {
+				// 保证不能数组越界
+				if (i < COLUMNS - 5
+						// 判断标准 一行连五个黑色棋子
+						&& pieces[i][j] == Pieces.BLACK
+						&& pieces[i + 1][j] == Pieces.BLACK
+						&& pieces[i + 2][j] == Pieces.BLACK
+						&& pieces[i + 3][j] == Pieces.BLACK
+						&& pieces[i + 4][j] == Pieces.BLACK) {
+					// 弹出窗口 "黑方胜利！"
+					JOptionPane.showMessageDialog(null, "黑方胜利！");
+					// 当再次点击棋盘时实现刷新棋盘 即重新开始功能
+					resetBoard();
+				}
+			}
+		}
+		// 黑色棋子一列5连
+		for (int i = 0; i < COLUMNS - 1; i++) {
+
+			for (int j = 0; j < ROWS - 1; j++) {
+				// 保证不能数组越界
+				if (j < ROWS - 5
+						// 判断标准 一列连五个黑色棋子
+						&& pieces[i][j] == Pieces.BLACK
+						&& pieces[i][j + 1] == Pieces.BLACK
+						&& pieces[i][j + 2] == Pieces.BLACK
+						&& pieces[i][j + 3] == Pieces.BLACK
+						&& pieces[i][j + 4] == Pieces.BLACK) {
+					// 弹出窗口 "黑方胜利！"
+					JOptionPane.showMessageDialog(null, "黑方胜利！");
+					// 当再次点击棋盘时实现刷新棋盘 即重新开始功能
+					resetBoard();
+				}
+			}
+		}
+		// 黑色棋子右斜着5连
+		for (int i = 0; i < COLUMNS - 1; i++) {
+
+			for (int j = 0; j < ROWS - 1; j++) {
+				// 保证不能数组越界
+				if (i < COLUMNS - 5
+						&& j < ROWS - 5
+						// 判断标准 右斜着连五个白色棋子
+						&& pieces[i][j] == Pieces.BLACK
+						&& pieces[i + 1][j + 1] == Pieces.BLACK
+						&& pieces[i + 2][j + 2] == Pieces.BLACK
+						&& pieces[i + 3][j + 3] == Pieces.BLACK
+						&& pieces[i + 4][j + 4] == Pieces.BLACK) {
+					// 弹出窗口 "黑方胜利！"
+					JOptionPane.showMessageDialog(null, "黑方胜利！");
+					// 当再次点击棋盘时实现刷新棋盘 即重新开始功能
+					resetBoard();
+				}
+			}
+		}
+		// 黑色棋子左斜着5连
+		for (int i = 0; i < COLUMNS - 1; i++) {
+
+			for (int j = 0; j < ROWS - 1; j++) {
+				// 保证不能数组越界
+				if (j < ROWS - 5
+						&& i > 3
+						// 判断标准 左斜着连五个白色棋子
+						&& pieces[i][j] == Pieces.BLACK
+						&& pieces[i - 1][j + 1] == Pieces.BLACK
+						&& pieces[i - 2][j + 2] == Pieces.BLACK
+						&& pieces[i - 3][j + 3] == Pieces.BLACK
+						&& pieces[i - 4][j + 4] == Pieces.BLACK) {
+					// 弹出窗口 "黑方胜利！"
+					JOptionPane.showMessageDialog(null, "黑方胜利！");
+					// 当再次点击棋盘时实现刷新棋盘 即重新开始功能
+					resetBoard();
+
+				}
+			}
+		}
+	}
+
+	// 创建五子棋框架
+	private void createAndShowGUI() throws IOException {
+		// 初始化 两个面板
+		qipan = new Gobang_9();
+		zujian = new JPanel();
+		// 设置布局管理器
+		frame.setLayout(null);
+		qipan.setLayout(null);
+		zujian.setLayout(null);
+		// 添加 组件
+		frame.add(menuBar);
+		frame.add(qipan);
+		frame.add(zujian);
+		zujian.add(number_black);
+		zujian.add(number_white);
+		zujian.add(lunci);
+		zujian.add(time);
+		zujian.add(kaishi);
+		zujian.add(baocun);
+		zujian.add(tuichu);
+		zujian.add(baiqiLabel);
+		zujian.add(heiqiLabel);
+		zujian.add(lunciLabel);
+		zujian.add(timeLabel);
+
+		// 设置按钮背景颜色
+		lunci.setBackground(Color.ORANGE);
+		time.setBackground(Color.GREEN);
+		number_black.setBackground(Color.BLUE);
+		number_white.setBackground(Color.RED);
+		// 设置相应label
+		baiqiLabel.setText("白棋剩余棋子");
+		heiqiLabel.setText("黑棋剩余棋子");
+		lunciLabel.setText("当前轮到");
+		timeLabel.setText("当前时间");
+		// 定义字体
+		f = new Font("SansSerif", Font.BOLD, 15);
+		// 设置字体
+		baiqiLabel.setFont(f);
+		heiqiLabel.setFont(f);
+		lunciLabel.setFont(f);
+		timeLabel.setFont(f);
+		// 设置 棋盘 和 组件区的大小
+		qipan.setBounds(0, 30, 650, 700);
+		zujian.setBounds(650, 30, 100, 700);
+		// 设置相应组件大小
+		menuBar.setBounds(mouseClickedX, mouseClickedY, 900, 30);
+		baiqiLabel.setBounds(0, 0, 100, 50);
+		heiqiLabel.setBounds(0, 100, 100, 50);
+		lunciLabel.setBounds(0, 200, 100, 50);
+		timeLabel.setBounds(0, 300, 100, 50);
+		number_black.setBounds(0, 50, 100, 50);
+		number_white.setBounds(0, 150, 100, 50);
+		lunci.setBounds(0, 250, 100, 50);
+		time.setBounds(0, 350, 100, 50);
+		kaishi.setBounds(0, 450, 100, 50);
+		baocun.setBounds(0, 510, 100, 50);
+		tuichu.setBounds(0, 570, 100, 50);
+
+		// 按钮功能
+		// 退出游戏按钮功能
+		tuichu.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				System.exit(0);
+			}
+		});
+		// 开始游戏按钮功能
+		kaishi.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				resetBoard();
+
+			}
+		});
+
+		// 设置框架
+		// 框架大小
+		frame.setSize(760, 710);
+		// 框架名称
+		frame.setTitle("LeeWay五子棋");
+		// 设置框架窗口大小不可改变
+		frame.setResizable(false);
+		// 设置框架窗口可视
+		frame.setVisible(true);
+		// 设置框架居中
+		frame.setLocationRelativeTo(null);
+	}
+
+	public static void main(String[] args) throws Exception {
+
+		new Gobang_9().createAndShowGUI();
+
+	}
+
+}
