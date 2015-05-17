@@ -1,0 +1,246 @@
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.Timer;
+
+@SuppressWarnings("serial")
+public class LeeWayJishiqiLogin extends JFrame implements MouseListener {
+	public JLabel up, down, left, right, jishi, jishiqiUp, jishiqiDown,
+			jishiqiLeft, jishiqiRight, small;
+	JButton kaishi, chongzhi, zanting;
+	JFrame leeWayJishiqiLogin;
+	int x, y;
+	String ifClose, ifSmall;
+
+	Date now = new Date();
+
+	@SuppressWarnings("deprecation")
+	public LeeWayJishiqiLogin() {
+		//
+		leeWayJishiqiLogin = new JFrame();
+		//
+		x = 4;
+		y = 4;
+		//
+		ifClose = "yes";
+		ifSmall = "no";
+		// 窗口设置
+		leeWayJishiqiLogin.setLayout(null);
+		leeWayJishiqiLogin.setSize(630, 300); // 设置窗口大小
+		leeWayJishiqiLogin.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 设置关闭
+		leeWayJishiqiLogin.setLocation(400, 200);// 设置窗口居中
+		leeWayJishiqiLogin.setVisible(true); // 设置窗口可视
+		leeWayJishiqiLogin.setTitle("计时器（LeeWay）"); // 设置窗口标题
+		leeWayJishiqiLogin.setResizable(false); // 设置窗口大小不可调
+		leeWayJishiqiLogin.setAlwaysOnTop(true);
+		addMouseListener(this); // 将鼠标事件加入类中
+		//
+		kaishi = new JButton(new ImageIcon("image/kaishi.png"));
+		chongzhi = new JButton(new ImageIcon("image/chongzhi.png"));
+		zanting = new JButton(new ImageIcon("image/zanting.png"));
+		up = new JLabel(new ImageIcon("image/chatUp.png"));
+		down = new JLabel(new ImageIcon("image/chatDown.png"));
+		left = new JLabel(new ImageIcon("image/chatLeft.png"));
+		right = new JLabel(new ImageIcon("image/chatRight.png"));
+		jishiqiUp = new JLabel(new ImageIcon("image/up.png"));
+		jishiqiDown = new JLabel(new ImageIcon("image/down.png"));
+		jishiqiLeft = new JLabel(new ImageIcon("image/left.png"));
+		jishiqiRight = new JLabel(new ImageIcon("image/right.png"));
+		small = new JLabel(new ImageIcon("image/small.png"));
+		leeWayJishiqiLogin.add(up);
+		up.setBounds(0, 0, 630, 50);
+		leeWayJishiqiLogin.add(down);
+		down.setBounds(0, 222, 630, 50);
+		leeWayJishiqiLogin.add(left);
+		left.setBounds(0, 0, 50, 325);
+		leeWayJishiqiLogin.add(right);
+		right.setBounds(580, 0, 50, 325);
+		leeWayJishiqiLogin.add(kaishi);
+		kaishi.setBounds(430, 50, 150, 50);
+		leeWayJishiqiLogin.add(chongzhi);
+		chongzhi.setBounds(430, 110, 150, 50);
+		leeWayJishiqiLogin.add(zanting);
+		zanting.setBounds(430, 172, 150, 50);
+		//
+		leeWayJishiqiLogin.add(jishiqiUp);
+		jishiqiUp.setBounds(99, 48, 280, 50);
+		leeWayJishiqiLogin.add(jishiqiDown);
+		jishiqiDown.setBounds(100, 173, 280, 50);
+		leeWayJishiqiLogin.add(jishiqiLeft);
+		jishiqiLeft.setBounds(50, 50, 50, 175);
+		leeWayJishiqiLogin.add(jishiqiRight);
+		jishiqiRight.setBounds(380, 50, 50, 175);
+
+		final Font f = new Font("SansSerif", Font.BOLD, 65);
+		final Font b = new Font("SansSerif", Font.BOLD, 30);
+		jishi = new JLabel();
+		now.setHours(0);
+		now.setMinutes(0);
+		now.setSeconds(0);
+		jishi.setFont(f);
+		leeWayJishiqiLogin.add(jishi);
+		jishi.setText("00:00:00");
+		jishi.setBounds(110, 85, 400, 100);
+		//
+
+		// 计时功能
+		final Timer timer = new Timer(1000, new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				Date now2 = new Date(now.getTime() + 1000);
+				now = now2;
+				SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+				jishi.setText(formatter.format(now));
+			}
+		});
+
+		//
+		kaishi.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				timer.start();
+				ifClose = "no";
+			}
+		});
+		//
+		chongzhi.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				timer.stop();
+				now.setHours(0);
+				now.setMinutes(0);
+				now.setSeconds(0);
+				jishi.setText("00:00:00");
+			}
+		});
+		//
+		zanting.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				timer.stop();
+				ifClose = "yes";
+			}
+		});
+		//
+		// 获得当前鼠标坐标
+		leeWayJishiqiLogin.addMouseMotionListener(new MouseAdapter() {
+			public void mouseMoved(MouseEvent e) {
+				x = e.getX();
+				y = e.getY();
+				System.out.println("当前X坐标是：" + x + " Y坐标是：" + y);
+
+			}
+
+		});
+		// 判断边界窗口消失
+		leeWayJishiqiLogin.addMouseListener(new MouseAdapter() {
+			public void mouseExited(MouseEvent e) {
+				System.out.println("离开时X、Y坐标是：" + x + " " + y);
+				if (ifClose == "no") {
+					if (x > 624 || y > 295 || x < 4 || y < 26) {
+						if (ifSmall == "no") {
+							leeWayJishiqiLogin.setLocation(1230, 610);
+							leeWayJishiqiLogin.setSize(108, 110);
+							leeWayJishiqiLogin.remove(up);
+							leeWayJishiqiLogin.remove(left);
+							leeWayJishiqiLogin.remove(jishiqiUp);
+							leeWayJishiqiLogin.remove(jishiqiLeft);
+							leeWayJishiqiLogin.add(small);
+							small.setBounds(0, 0, 180, 80);
+							jishi.setFont(b);
+							jishi.setBounds(0, 0, 130, 80);
+							ifSmall = "yes";
+						} else {
+						
+						}
+
+					}
+				} else {
+					if (x > 624 || y > 295 || x < 4 || y < 26) {
+						leeWayJishiqiLogin.setVisible(false);
+						new LeeWayJishiqiChumo();
+					}
+
+				}
+
+			}
+
+		});
+		//
+		leeWayJishiqiLogin.addMouseListener(new MouseAdapter() {
+			public void mouseEntered(MouseEvent e) {
+				System.out.println("离开时X、Y坐标是：" + x + " " + y);
+				if (ifClose == "no") {
+					if (x > 624 || y > 295 || x < 4 || y < 26) {
+						if (ifSmall == "no") {
+
+						} else {
+							leeWayJishiqiLogin.remove(small);
+							leeWayJishiqiLogin.setLocation(400, 200);
+							leeWayJishiqiLogin.setSize(630, 300);
+							leeWayJishiqiLogin.add(up);
+							leeWayJishiqiLogin.add(left);
+							leeWayJishiqiLogin.add(jishiqiUp);
+							leeWayJishiqiLogin.add(jishiqiLeft);
+							jishi.setFont(f);
+							jishi.setBounds(110, 85, 400, 100);
+							ifSmall = "no";
+						}
+
+					}
+				} else {
+					if (x > 624 || y > 295 || x < 4 || y < 26) {
+
+					}
+
+				}
+
+			}
+
+		});
+
+	}
+
+	public static void main(String[] args) {
+		new LeeWayJishiqiLogin();
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+}
